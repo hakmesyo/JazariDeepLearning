@@ -119,11 +119,6 @@ public final class JIM {
 //     * 7- cmd: pip install pillow 
 //     * 8- cmd: pip install matplotlib 
 //     * 9- cmd: pip install keras
-//     * 10- make directory python_data in C:\
-//     * 11- make directory python_data\models 
-//     * 12- make directory python_data\scripts 
-//     *
-//     * all keras models should be placed in C:\python_data\models\ (for example keras_model.h5)
 //     *
 //     * @param str
 //     * @return
