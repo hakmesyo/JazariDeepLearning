@@ -23,7 +23,7 @@ import utils.FactoryUtils;
      * 9- cmd: pip install keras
      */
 
-public class TestUsage {
+public class AppPython {
     private static long t=FactoryUtils.tic();    
  
     private static void doSomething(String str){
@@ -32,9 +32,9 @@ public class TestUsage {
     }
     
     public static void main(String[] args) {
-//        doTransferLearningOnlineWebCamTestPythonCPU();
+        doTransferLearningOnlineWebCamTestPythonCPU();
 //        doTransferLearningOfflineTestPythonCPUfile();
-          doTransferLearningOnlineTestPythonCPUfile();
+//        doTransferLearningOnlineTestPythonCPUfile();
     }
 
     /**
@@ -68,7 +68,7 @@ public class TestUsage {
         JIM.transferLearningModelForOfflineTestImages(
                 ProgrammingLanguage.PYTHON,
                 BackEnd.CPU,
-                "models\\keras_model_pistachio.h5",
+                FactoryUtils.currDir+"\\models\\keras_model_pistachio.h5",
                 DataSource.FILE,
                 "dataset\\pistachio\\test",
                 (String str) -> {
@@ -127,7 +127,7 @@ public class TestUsage {
             try {
                 Thread.sleep(10);
             } catch (InterruptedException ex) {
-                Logger.getLogger(TestUsage.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(AppPython.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
         files=FactoryUtils.getFiles(closedPath);
@@ -136,7 +136,7 @@ public class TestUsage {
             try {
                 Thread.sleep(10);
             } catch (InterruptedException ex) {
-                Logger.getLogger(TestUsage.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(AppPython.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }

@@ -12,45 +12,33 @@ import cv2
 from websocket_server import WebsocketServer
 ws=websocket.WebSocket();
 ws.connect('ws://127.0.0.1:8887')
+class_names = ['Closed','Open']
 # Load the model
-model = tensorflow.keras.models.load_model(r'E:\Dropbox\NetbeansProjects\JazariDeepLearning\models\keras_model_pistachio.h5')
-ws.send('python client is ready for constructing python server')
-def predictSingleImage(client,server,path):
-     data = np.ndarray(shape=(1, 224, 224, 3), dtype=np.float32)
-     image = Image.open(path)
-     # Make sure to resize all images to 224, 224 otherwise they won't fit in the array
-     image = image.resize((224, 224))
-     image_array = np.asarray(image)
-     # Normalize the image
-     normalized_image_array = (image_array.astype(np.float32) / 127.0) - 1
-     #normalized_image_array = (image_array.astype(np.float32) / 255.0)
-     # Load the image into the array
-     data[0] = normalized_image_array 
-     # run the inference
-     start = timeit.default_timer()
-     prediction = model.predict(data)
-     stop = timeit.default_timer()
-     server.send_message(client,'predicted class index:'+str(np.argmax(prediction)))
-#     ws.send('predicted class index:'+str(np.argmax(prediction)))
-#     ws.send(np.argmax(prediction))
-# Called for every client connecting (after handshake)
-def new_client(client, server):
-        print('New client connected and was given id %d' % client['id'])
-        server.send_message_to_all('Hey all, a new client has joined us')
-#        ws.send('22222Hey all, a new client has joined us')
-# Called for every client disconnecting
-def client_left(client, server):
-        print('Client(%d) disconnected' % client['id'])
-# Called when a client sends a message
-def message_received(client, server, message):
-#        server.send_message(client,'python server said java client sent me '+message)
-        if message=='stop':
-            server.shutdown()
+model = tensorflow.keras.models.load_model(r'models\keras_model_pistachio.h5')
+data = np.ndarray(shape=(1, 224, 224, 3), dtype=np.float32)
+def open_camera():
+    global nTotal;
+    global nOpenSuccess;
+    global nClosedSuccess;
+    global acc;
+    x='open'
+    capture=cv2.VideoCapture(0)
+    while(True):
+        start = timeit.default_timer()
+        ret, frame = capture.read()
+        cv2.imshow('video', frame)
+        image = np.resize(frame,(224, 224,3))
+        image_array = np.asarray(image)
+        normalized_image_array = (image_array.astype(np.float32) / 127.0) - 1
+        # Load the image into the array
+        data[0] = normalized_image_array
+        # run the inference
+        prediction = model.predict(data)
+        ws.send('class:'+class_names[np.argmax(prediction)])
+        stop = timeit.default_timer()
+        if cv2.waitKey(2) == 27:
             ws.send('stop')
-        predictSingleImage(client,server,message)
-PORT=8888
-server = WebsocketServer(PORT)
-server.set_fn_new_client(new_client)
-server.set_fn_client_left(client_left)
-server.set_fn_message_received(message_received)
-server.run_forever()
+            break
+    capture.release()
+    cv2.destroyAllWindows()
+open_camera()
