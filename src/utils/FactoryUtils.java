@@ -18,10 +18,13 @@ import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
+import java.text.DecimalFormat;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import jazari.CallBackInterface;
+import jazari.CallableImageInterface;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft_6455;
 import org.java_websocket.handshake.ServerHandshake;
@@ -36,30 +39,25 @@ public class FactoryUtils {
     public static SocketServer s;
     public static WebSocketClient client;
     public static String currDir = System.getProperty("user.dir");
+    public static final AtomicBoolean running = new AtomicBoolean(false);
 
     public static String getDefaultDirectory() {
         String workingDir = System.getProperty("user.dir");
         return workingDir;
     }
     
-    public static void startJavaServer(CallBackInterface cbi) {
+    public static void startJavaServer(CallBackInterface cb) {
         new Thread(() -> {
             try {
                 int port = 8887;
-                s = new SocketServer(port,cbi);
+                s = new SocketServer(port,cb);
                 s.start();
                 System.out.println("Java WebSocket Server started on port: " + s.getPort());
                 BufferedReader sysin = new BufferedReader(new InputStreamReader(System.in));
-                while (true) {
+                running.set(true);
+                while (running.get()) {
                     try {
-                        if (!sysin.ready()) {
-                            if (stopServer) {
-                                s.stop();
-                                System.out.println("Java Server is stopping");
-                                break;
-                            }
-                        } else {
-
+                        if (sysin.ready()) {
                             String in;
                             try {
                                 in = sysin.readLine();
@@ -76,10 +74,6 @@ public class FactoryUtils {
                             } catch (IOException ex) {
                                 Logger.getLogger(FactoryUtils.class.getName()).log(Level.SEVERE, null, ex);
                             }
-                            if (stopServer) {
-                                System.out.println("Java WebSocket Server was terminated successfully");
-                                break;
-                            }
                         }
                         Thread.sleep(1);
                     } catch (IOException ex) {
@@ -89,7 +83,13 @@ public class FactoryUtils {
                     }
 
                 }
+                System.out.println("Java Server was stopped");
+                s.stop();
             } catch (UnknownHostException ex) {
+                Logger.getLogger(FactoryUtils.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                Logger.getLogger(FactoryUtils.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (InterruptedException ex) {
                 Logger.getLogger(FactoryUtils.class.getName()).log(Level.SEVERE, null, ex);
             }
         }).start();
@@ -100,19 +100,19 @@ public class FactoryUtils {
         stopServer = true;
     }
 
-    public static boolean connectPythonServer() {
+    public static WebSocketClient connectPythonServer() {
         isConnectPythonServer = true;
         try {
             client = new WebSocketClient(new URI("ws://localhost:8888"), new Draft_6455()) {
 
                 @Override
                 public void onMessage(String message) {
-                    System.out.println("incoming message = " + message);
+                    System.out.println("incoming message from python server = " + message);
                 }
 
                 @Override
                 public void onOpen(ServerHandshake handshake) {
-                    System.out.println("You are connected to Remote Python Server: " + getURI() + "\n");
+                    System.out.println("You connected to python server: " + getURI() + "\n");
                 }
 
                 @Override
@@ -122,26 +122,29 @@ public class FactoryUtils {
 
                 @Override
                 public void onError(Exception ex) {
-                    new Thread(() -> {
-                        System.out.println("Remote Python Server is starting now");
-                        executeCommand("python " + FactoryUtils.currDir + "\\scripts\\python\\server.py");
-                    }).start();
-                    System.out.println("Exception occured but it was fixed...\n" + ex + "\n");
-                    isConnectPythonServer = false;
-                    System.out.println("düzeltmek için bir daha deniyor");
-                    connectPythonServer();
-                    isConnectPythonServer = false;
+                    System.out.println("Can't connect to python server:8888");
+//                    new Thread(() -> {
+//                        System.out.println("Remote Python Server is starting now");
+//                        executeCommand("python " + FactoryUtils.currDir + "\\scripts\\python\\server.py");
+//                    }).start();
+//                    System.out.println("Exception occured but it was fixed...\n" + ex + "\n");
+//                    isConnectPythonServer = false;
+//                    System.out.println("düzeltmek için bir daha deniyor");
+//                    connectPythonServer();
+//                    isConnectPythonServer = false;
                 }
             };
-            if (isConnectPythonServer) {
-                client.connect();
-            }
+            client.connect();
+            
+//            if (isConnectPythonServer) {
+//                client.connect();
+//            }
 
         } catch (URISyntaxException ex) {
             System.out.println("ws://localhost:8888" + " is not a valid WebSocket URI\n");
             isConnectPythonServer = false;
         }
-        return isConnectPythonServer;
+        return client;
     }
 
     public static void delay(int n) {
@@ -341,5 +344,46 @@ public class FactoryUtils {
             ret[i]=s[i];
         }
         return ret;
+    }
+    
+    public static long tic() {
+        long currentTime = System.nanoTime();
+        return currentTime;
+    }
+
+    public static long toc(String msg, long tic) {
+        long toc = System.nanoTime();
+        double elapsed = (toc - tic) / (1000000.0d);
+        System.out.println(msg + elapsed + " miliSecond");
+        return toc;
+    }
+
+    public static long toc(long tic) {
+        long toc = System.nanoTime();
+        double elapsed = (toc - tic) / (1000000.0d);
+        System.out.println("Elapsed Time:" + formatDouble(elapsed) + " miliSecond");
+        return toc;
+    }
+    
+    public static double formatDouble(double num) {
+        double q = 0;
+        try {
+            DecimalFormat df = new DecimalFormat("#.000");
+            q = Double.parseDouble(df.format(num).replace(",", "."));
+        } catch (Exception e) {
+//            e.printStackTrace();
+            return -10000000000000.0;
+        }
+        return q;
+    }
+    
+    public static File[] getDirectories(String path){
+        File[] directories = new File(path).listFiles(File::isDirectory);
+        return directories;
+    }
+    
+    public static File[] getFiles(String path){
+        File[] files = new File(path).listFiles(File::isFile);
+        return files;
     }
 }

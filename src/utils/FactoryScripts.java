@@ -5,7 +5,9 @@
  */
 package utils;
 
+import java.io.File;
 import jazari.BackEnd;
+import jazari.CallableImageInterface;
 import jazari.DataSource;
 import jazari.ProgrammingLanguage;
 
@@ -27,26 +29,10 @@ public class FactoryScripts {
             + "import time\n"
             + "import websocket\n"
             + "import cv2\n"
+            + "from websocket_server import WebsocketServer\n"
             + "ws=websocket.WebSocket();\n"
             + "ws.connect('ws://127.0.0.1:8887')\n";
-
-    public static String generateScriptFile(ProgrammingLanguage programming_language, BackEnd back_end, DataSource data_source, String model_path, String[] classLabels) {
-        String str = "";
-        String ek ="class_names = [";
-        for (int i = 0; i < classLabels.length; i++) {
-            ek+="'"+classLabels[i]+"',";
-        }
-        ek=ek.substring(0,ek.length()-1);
-        ek=ek+"]\n";
-        if (back_end == BackEnd.CPU) {
-            if (data_source == DataSource.CAMERA) {
-                if (programming_language == ProgrammingLanguage.PYTHON) {
-                    str = strPythonLibrary
-                            + ek+
-                            "# Load the model\n"
-                            //+ "model = tensorflow.keras.models.load_model(r'C:\\python_data\\models\\keras_model_pistachio.h5')\n"
-                            + "model = tensorflow.keras.models.load_model(r'"+model_path+"')\n"
-                            + "data = np.ndarray(shape=(1, 224, 224, 3), dtype=np.float32)\n"
+    private final static String strPythonWebCam=""
                             + "def open_camera():\n"
                             + "    global nTotal;\n"
                             + "    global nOpenSuccess;\n"
@@ -68,10 +54,153 @@ public class FactoryScripts {
                             + "        ws.send('class:'+class_names[np.argmax(prediction)])\n"
                             + "        stop = timeit.default_timer()\n"
                             + "        if cv2.waitKey(2) == 27:\n"
+                            + "            ws.send('stop')\n"
                             + "            break\n"
                             + "    capture.release()\n"
                             + "    cv2.destroyAllWindows()\n"
                             + "open_camera()\n";
+    
+    private static String strPythonOfflineTestFileImages=""
+                        + "nTotal=0;\n"
+                        + "nOpenSuccess=0;\n"
+                        + "nClosedSuccess=0;\n"
+                        + "acc=0;\n"
+                        + "for x in class_names:\n"
+                            + "    path=os.path.join(test_path,x)\n"
+                            + "    for imge in os.listdir(path):\n"
+                            + "        image = Image.open(os.path.join(path,imge))\n"
+                            + "        # Make sure to resize all images to 224, 224 otherwise they won't fit in the array\n"
+                            + "        image = image.resize((224, 224))\n"
+                            + "        image_array = np.asarray(image)\n"
+                            + "        # Normalize the image\n"
+                            + "        normalized_image_array = (image_array.astype(np.float32) / 127.0) - 1\n"
+                            + "#        normalized_image_array = (image_array.astype(np.float32) / 255.0)\n"
+                            + "        # Load the image into the array\n"
+                            + "        data[0] = normalized_image_array \n"
+                            + "        # run the inference\n"
+                            + "        start = timeit.default_timer()\n"
+                            + "        prediction = model.predict(data)\n"
+                            + "        stop = timeit.default_timer()\n"
+                            + "        nTotal+=1\n"
+                            + "        if x=='open' and np.argmax(prediction)==1:\n"
+                            + "            nOpenSuccess+=1\n"
+                            + "        if x=='closed' and np.argmax(prediction)==0:\n"
+                            + "            nClosedSuccess+=1\n"
+                            + "        acc=(nOpenSuccess+nClosedSuccess)*1.0/nTotal\n"
+                            + "#        print('acc',acc,' class:',class_names[np.argmax(prediction)],' elapsed time:', (stop-start))\n"
+                            + "        ws.send('class:'+class_names[np.argmax(prediction)])\n"
+                            + "ws.send('offline batch prediction accuracy:'+str(acc))\n"
+                            + "ws.send('stop')\n"
+                        ;
+
+    public static String generateScriptFilePythonWebCamTestTransferLearning(ProgrammingLanguage programming_language, BackEnd back_end, DataSource data_source, String model_path, String[] classLabels) {
+        String str = "";
+        String ek ="class_names = [";
+        for (int i = 0; i < classLabels.length; i++) {
+            ek+="'"+classLabels[i]+"',";
+        }
+        ek=ek.substring(0,ek.length()-1);
+        ek=ek+"]\n";
+        if (back_end == BackEnd.CPU) {
+            if (data_source == DataSource.CAMERA) {
+                if (programming_language == ProgrammingLanguage.PYTHON) {
+                    str = strPythonLibrary
+                            + ek+
+                            "# Load the model\n"
+                            //+ "model = tensorflow.keras.models.load_model(r'C:\\python_data\\models\\keras_model_pistachio.h5')\n"
+                            + "model = tensorflow.keras.models.load_model(r'"+model_path+"')\n"
+                            + "data = np.ndarray(shape=(1, 224, 224, 3), dtype=np.float32)\n"
+                            +strPythonWebCam;
+                    
+                    FactoryUtils.writeToFile(FactoryUtils.currDir + "\\tmp.py", str);
+                    return FactoryUtils.currDir + "\\tmp.py";
+                }
+            }
+        }
+        return null;
+    }
+    
+    public static String generateScriptFilePythonOfflineFileTestTransferLearning(ProgrammingLanguage programming_language, BackEnd back_end, DataSource data_source,String test_path, String model_path) {
+        File[] dirs=FactoryUtils.getDirectories(test_path);        
+        String str = "";
+        String ek ="class_names = [";
+        for (int i = 0; i < dirs.length; i++) {
+            ek+="'"+dirs[i].getName()+"',";
+        }
+        ek=ek.substring(0,ek.length()-1);
+        ek=ek+"]\n";
+        String testPath=FactoryUtils.currDir+"\\"+test_path;
+        if (back_end == BackEnd.CPU) {
+            if (data_source == DataSource.FILE) {
+                if (programming_language == ProgrammingLanguage.PYTHON) {
+                    str = strPythonLibrary
+                            + ek
+                            + "test_path=r'"+testPath+"'\n"
+                            + "# Load the model\n"
+                            //+ "model = tensorflow.keras.models.load_model(r'C:\\python_data\\models\\keras_model_pistachio.h5')\n"
+                            + "model = tensorflow.keras.models.load_model(r'"+model_path+"')\n"
+                            + "data = np.ndarray(shape=(1, 224, 224, 3), dtype=np.float32)\n"
+                            +strPythonOfflineTestFileImages;
+                    
+                    FactoryUtils.writeToFile(FactoryUtils.currDir + "\\tmp.py", str);
+                    return FactoryUtils.currDir + "\\tmp.py";
+                }
+            }
+        }
+        return null;
+    }
+    
+    public static String generateScriptFilePythonOnlineFileTestTransferLearning(ProgrammingLanguage programming_language, BackEnd back_end, DataSource data_source,String model_path) {
+        String str="";
+        if (back_end == BackEnd.CPU) {
+            if (data_source == DataSource.FILE) {
+                if (programming_language == ProgrammingLanguage.PYTHON) {
+                    str = strPythonLibrary
+                            + "# Load the model\n"
+                            + "model = tensorflow.keras.models.load_model(r'"+model_path+"')\n"
+                            + "ws.send('python client is ready for constructing python server')\n"
+                            + "def predictSingleImage(client,server,path):\n"
+                            + "     data = np.ndarray(shape=(1, 224, 224, 3), dtype=np.float32)\n"
+                            + "     image = Image.open(path)\n"
+                            + "     # Make sure to resize all images to 224, 224 otherwise they won't fit in the array\n"
+                            + "     image = image.resize((224, 224))\n"
+                            + "     image_array = np.asarray(image)\n"
+                            + "     # Normalize the image\n"
+                            + "     normalized_image_array = (image_array.astype(np.float32) / 127.0) - 1\n"
+                            + "     #normalized_image_array = (image_array.astype(np.float32) / 255.0)\n"
+                            + "     # Load the image into the array\n"
+                            + "     data[0] = normalized_image_array \n"
+                            + "     # run the inference\n"
+                            + "     start = timeit.default_timer()\n"
+                            + "     prediction = model.predict(data)\n"
+                            + "     stop = timeit.default_timer()\n"
+                            + "     server.send_message(client,'predicted class index:'+str(np.argmax(prediction)))\n"
+                            + "#     ws.send('predicted class index:'+str(np.argmax(prediction)))\n"
+                            + "#     ws.send(np.argmax(prediction))\n"
+                            + "# Called for every client connecting (after handshake)\n"
+                            + "def new_client(client, server):\n"
+                            + "        print('New client connected and was given id %d' % client['id'])\n"
+                            + "        server.send_message_to_all('Hey all, a new client has joined us')\n"
+                            + "#        ws.send('22222Hey all, a new client has joined us')\n"
+                            + "# Called for every client disconnecting\n"
+                            + "def client_left(client, server):\n"
+                            + "        print('Client(%d) disconnected' % client['id'])\n"
+                            + "# Called when a client sends a message\n"
+                            + "def message_received(client, server, message):\n"
+                            + "#        server.send_message(client,'python server said java client sent me '+message)\n"
+                            + "        if message=='stop':\n"
+                            + "            server.shutdown()\n"
+                            + "            ws.send('stop')\n"
+                            + "        predictSingleImage(client,server,message)\n"
+                            + "PORT=8888\n"
+                            + "server = WebsocketServer(PORT)\n"
+                            + "server.set_fn_new_client(new_client)\n"
+                            + "server.set_fn_client_left(client_left)\n"
+                            + "server.set_fn_message_received(message_received)\n"
+                            + "server.run_forever()\n"
+                            
+                          ;
+                    
                     FactoryUtils.writeToFile(FactoryUtils.currDir + "\\tmp.py", str);
                     return FactoryUtils.currDir + "\\tmp.py";
                 }

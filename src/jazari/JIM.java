@@ -5,6 +5,9 @@
  */
 package jazari;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.java_websocket.client.WebSocketClient;
 import utils.FactoryScripts;
 import utils.FactoryUtils;
 
@@ -21,13 +24,15 @@ public final class JIM {
     private static String model_path;
     private static String scriptFile=null;
     private static String[] classLabels=null;
+    private static boolean isConnectToPythonServer=false;
+//    public static WebSocketClient client;
     
 
     private JIM(CallBackInterface cb) {
         FactoryUtils.startJavaServer(cb);
         FactoryUtils.delay(1000);
     }
-
+    
     public static JIM getInstance(CallBackInterface cb) {
         if (jim == null) {
             jim = new JIM(cb);
@@ -35,17 +40,18 @@ public final class JIM {
         return jim;
     }
 
+
     /**
      * 
      * @param pl
      * @param be
      * @param modelPath
      * @param ds
-     * @param classLabels
+     * @param class_labels
      * @param cb
      * @return 
      */
-    public static JIM Test_CNN_TransferLearningModel(
+    public static JIM transferLearningModelForImages(
             ProgrammingLanguage pl,
             BackEnd be,
             String modelPath,
@@ -55,12 +61,51 @@ public final class JIM {
             
     ) {
         jim=getInstance(cb);
+        isConnectToPythonServer=false;
         back_end=be;
         data_source=ds;
         programming_language=pl;
         model_path=modelPath; 
         classLabels=FactoryUtils.clone(class_labels);
-        scriptFile=FactoryScripts.generateScriptFile(programming_language,back_end,data_source,model_path,classLabels);
+        scriptFile=FactoryScripts.generateScriptFilePythonWebCamTestTransferLearning(programming_language,back_end,data_source,model_path,classLabels);
+        return jim;
+    }
+    
+    public static JIM transferLearningModelForOfflineTestImages(
+            ProgrammingLanguage pl,
+            BackEnd be,
+            String modelPath,
+            DataSource ds,
+            String test_path,
+            CallBackInterface cb
+            
+    ) {
+        jim=getInstance(cb);
+        isConnectToPythonServer=false;
+        back_end=be;
+        data_source=ds;
+        programming_language=pl;
+        model_path=modelPath; 
+        scriptFile=FactoryScripts.generateScriptFilePythonOfflineFileTestTransferLearning(programming_language,back_end,data_source,test_path,model_path);
+        return jim;
+    }
+    
+    
+    public static JIM transferLearningModelForOnlineTestImage(
+            ProgrammingLanguage pl,
+            BackEnd be,
+            String modelPath,
+            DataSource ds,
+            CallBackInterface cb
+            
+    ) {
+        jim=getInstance(cb);
+        isConnectToPythonServer=true;
+        back_end=be;
+        data_source=ds;
+        programming_language=pl;
+        model_path=modelPath; 
+        scriptFile=FactoryScripts.generateScriptFilePythonOnlineFileTestTransferLearning(programming_language,back_end,data_source,model_path);
         return jim;
     }
     
@@ -172,7 +217,16 @@ public final class JIM {
         if (scriptFile==null) {
             System.out.println("Severe Error has been occured script file could not generated");
         }else{
-            FactoryUtils.executeCommand("python "+scriptFile);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    FactoryUtils.executeCommand("python "+scriptFile);               
+                }
+            }).start();
+//            FactoryUtils.delay(5000);
+//            if (isConnectToPythonServer) {
+//                client=FactoryUtils.connectPythonServer();
+//            }
         }
     }
 

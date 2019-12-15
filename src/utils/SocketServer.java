@@ -24,25 +24,23 @@ package utils;
  *  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  *  OTHER DEALINGS IN THE SOFTWARE.
  */
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import jazari.CallBackInterface;
-
+import jazari.CallableImageInterface;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 
 public class SocketServer extends WebSocketServer {
 
-    CallBackInterface cbi;
+    CallBackInterface cb;
+    CallableImageInterface ci;
 
     public SocketServer(int port, CallBackInterface cbi) throws UnknownHostException {
         super(new InetSocketAddress(port));
-        this.cbi = cbi;
+        this.cb = cbi;
     }
 
     public SocketServer(InetSocketAddress address) {
@@ -53,7 +51,7 @@ public class SocketServer extends WebSocketServer {
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
         conn.send("Welcome to the server!"); //This method sends a message to the new client
         broadcast("new connection: " + handshake.getResourceDescriptor()); //This method sends a message to all clients connected
-        System.out.println(conn.getRemoteSocketAddress().getAddress().getHostAddress() + " entered the room!");
+        System.out.println("Python client "+conn.getRemoteSocketAddress().getAddress().getHostAddress() + " connected to Java Server!");
     }
 
     @Override
@@ -70,8 +68,10 @@ public class SocketServer extends WebSocketServer {
 //                long t2=System.currentTimeMillis()-t;
 //		System.out.println( conn + " : " + message + " zaman:"+t2 +"ms" );
 //                t=System.currentTimeMillis();
-        cbi.onReceive("received:"+message);
-
+        cb.onReceive("received:"+message);
+        if (message.equals("stop")) {
+            FactoryUtils.running.set(false);
+        }
     }
 
     @Override
