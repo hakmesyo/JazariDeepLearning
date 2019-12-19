@@ -10,11 +10,12 @@ import time
 import websocket
 import cv2
 from websocket_server import WebsocketServer
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 ws=websocket.WebSocket();
 ws.connect('ws://127.0.0.1:8887')
 class_names = ['Closed','Open']
 # Load the model
-model = tensorflow.keras.models.load_model(r'models\keras_model_pistachio.h5')
+model = tensorflow.keras.models.load_model(r'D:\Dropbox\NetbeansProjects\JazariDeepLearning\models\keras_model_pistachio.h5')
 data = np.ndarray(shape=(1, 224, 224, 3), dtype=np.float32)
 def open_camera():
     global nTotal;

@@ -5,9 +5,6 @@
  */
 package jazari;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.java_websocket.client.WebSocketClient;
 import utils.FactoryScripts;
 import utils.FactoryUtils;
 
@@ -43,7 +40,6 @@ public final class JIM {
 
     /**
      * 
-     * @param pl
      * @param be
      * @param modelPath
      * @param ds
@@ -51,8 +47,7 @@ public final class JIM {
      * @param cb
      * @return 
      */
-    public static JIM transferLearningModelForImages(
-            ProgrammingLanguage pl,
+    public static JIM pythonTransferLearningWebCam(
             BackEnd be,
             String modelPath,
             DataSource ds,
@@ -64,7 +59,26 @@ public final class JIM {
         isConnectToPythonServer=false;
         back_end=be;
         data_source=ds;
-        programming_language=pl;
+        programming_language=ProgrammingLanguage.PYTHON;
+        model_path=modelPath; 
+        classLabels=FactoryUtils.clone(class_labels);
+        scriptFile=FactoryScripts.generateScriptFilePythonWebCamTestTransferLearning(programming_language,back_end,data_source,model_path,classLabels);
+        return jim;
+    }
+    
+    public static JIM javaSciptTransferLearningWebCam(
+            BackEnd be,
+            String modelPath,
+            DataSource ds,
+            String[] class_labels,
+            CallBackInterface cb
+            
+    ) {
+        jim=getInstance(cb);
+        isConnectToPythonServer=false;
+        back_end=be;
+        data_source=ds;
+        programming_language=ProgrammingLanguage.JAVA_SCRIPT;
         model_path=modelPath; 
         classLabels=FactoryUtils.clone(class_labels);
         scriptFile=FactoryScripts.generateScriptFilePythonWebCamTestTransferLearning(programming_language,back_end,data_source,model_path,classLabels);

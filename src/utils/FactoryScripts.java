@@ -30,6 +30,7 @@ public class FactoryScripts {
             + "import websocket\n"
             + "import cv2\n"
             + "from websocket_server import WebsocketServer\n"
+            + "os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'\n"
             + "ws=websocket.WebSocket();\n"
             + "ws.connect('ws://127.0.0.1:8887')\n";
     private final static String strPythonWebCam=""
@@ -90,7 +91,7 @@ public class FactoryScripts {
                             + "#        print('acc',acc,' class:',class_names[np.argmax(prediction)],' elapsed time:', (stop-start))\n"
                             + "        ws.send('class:'+class_names[np.argmax(prediction)])\n"
                             + "ws.send('offline batch prediction accuracy:'+str(acc))\n"
-                            + "ws.send('stop')\n"
+//                            + "ws.send('stop')\n"
                         ;
 
     public static String generateScriptFilePythonWebCamTestTransferLearning(ProgrammingLanguage programming_language, BackEnd back_end, DataSource data_source, String model_path, String[] classLabels) {

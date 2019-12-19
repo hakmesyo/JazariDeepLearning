@@ -1,3 +1,5 @@
+package test;
+
 
 import java.io.File;
 import java.util.logging.Level;
@@ -12,7 +14,7 @@ import utils.FactoryUtils;
      * for python backend please pip install those in cmd window. First of all download latest
      * python 64 bit version (python 3.7.5 date:12.12.2019) and install properly
      * and allow add path variable and restart the pc. Then install those libraries with pip 
-     * 1- cmd: python -m pip install –upgrade pip 
+     * 1- cmd: python -m pip install –-upgrade pip 
      * 2- cmd: pip install tensorflow 
      * 3- (optional if you don't have gpu, skip this item) cmd: pip install tensorflow-gpu  
      * 4- cmd: pip install opencv-python 
@@ -23,7 +25,7 @@ import utils.FactoryUtils;
      * 9- cmd: pip install keras
      */
 
-public class AppPython {
+public class TestPython {
     private static long t=FactoryUtils.tic();    
  
     private static void doSomething(String str){
@@ -45,15 +47,12 @@ public class AppPython {
      * asenkron bir şekilde biiznillah çalıştırır.
      */
     private static void doTransferLearningOnlineWebCamTestPythonCPU() {
-        JIM.transferLearningModelForImages(
-                ProgrammingLanguage.PYTHON,
+        JIM.pythonTransferLearningWebCam(
                 BackEnd.CPU,
-                "models\\keras_model_pistachio.h5",
+                FactoryUtils.currDir+"\\models\\keras_model_pistachio.h5",
                 DataSource.CAMERA,
-                new String[]{"Closed","Open"},
-                (String str) -> {
-                    doSomething(str);
-                })
+                new String[]{"Closed","Open"}, 
+                TestPython::doSomething)
                 .execute();
     }
     
@@ -65,15 +64,12 @@ public class AppPython {
      * asenkron bir şekilde biiznillah çalıştırır.
      */
     private static void doTransferLearningOfflineTestPythonCPUfile() {
-        JIM.transferLearningModelForOfflineTestImages(
-                ProgrammingLanguage.PYTHON,
+        JIM.transferLearningModelForOfflineTestImages(ProgrammingLanguage.PYTHON,
                 BackEnd.CPU,
                 FactoryUtils.currDir+"\\models\\keras_model_pistachio.h5",
                 DataSource.FILE,
-                "dataset\\pistachio\\test",
-                (String str) -> {
-                    doSomething(str);
-                })
+                "dataset\\pistachio\\test", 
+                TestPython::doSomething)
                 .execute();
     }
     
@@ -114,6 +110,7 @@ public class AppPython {
     }
     
     private static void predictOnebyOne(){
+        
         if (FactoryUtils.client==null) {
             System.out.println("python server connection was not established something went wrong");
             return;
@@ -127,7 +124,7 @@ public class AppPython {
             try {
                 Thread.sleep(10);
             } catch (InterruptedException ex) {
-                Logger.getLogger(AppPython.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(TestPython.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
         files=FactoryUtils.getFiles(closedPath);
@@ -136,9 +133,15 @@ public class AppPython {
             try {
                 Thread.sleep(10);
             } catch (InterruptedException ex) {
-                Logger.getLogger(AppPython.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(TestPython.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+    }
+    
+    private void topla(){
+        new Thread(() -> {
+            //kdjfksjdhf
+        }).start();
     }
     
 }

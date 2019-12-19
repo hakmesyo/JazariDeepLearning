@@ -10,5 +10,5 @@ package jazari;
  * @author BAP1
  */
 public enum ProgrammingLanguage {
-    JAVA,PYTHON,JAVA_SCRIPT
+    JAVA,PYTHON,JAVA_SCRIPT,WEKA,DL4J
 }
