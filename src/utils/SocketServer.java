@@ -27,20 +27,16 @@ package utils;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
-import jazari.CallBackInterface;
-import jazari.CallableImageInterface;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
+import org.java_websocket.framing.Framedata;
 
 public class SocketServer extends WebSocketServer {
+    public static boolean isClientConnectedNow=false;
 
-    CallBackInterface cb;
-    CallableImageInterface ci;
-
-    public SocketServer(int port, CallBackInterface cbi) throws UnknownHostException {
+    public SocketServer(int port) throws UnknownHostException {
         super(new InetSocketAddress(port));
-        this.cb = cbi;
     }
 
     public SocketServer(InetSocketAddress address) {
@@ -50,27 +46,35 @@ public class SocketServer extends WebSocketServer {
     @Override
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
         conn.send("Welcome to the server!"); //This method sends a message to the new client
-        broadcast("new connection: " + handshake.getResourceDescriptor()); //This method sends a message to all clients connected
-        System.out.println("Python client "+conn.getRemoteSocketAddress().getAddress().getHostAddress() + " connected to Java Server!");
+//        broadcast("[new client connection]: " + handshake.getResourceDescriptor()); //This method sends a message to all clients connected
+        broadcast("[new client connection]: " + conn.getRemoteSocketAddress().getAddress().getHostAddress()); //This method sends a message to all clients connected
+        System.out.println("New Client "+conn.getRemoteSocketAddress().getAddress().getHostAddress() + " connected to Java Server!");
+        isClientConnectedNow=true;
+    }
+    
+    
+    @Override
+    public void onWebsocketPing(WebSocket conn,Framedata f){
+        super.onWebsocketPing(conn, f);
+        System.out.println(f.getOpcode()+" from "+conn.getLocalSocketAddress());
     }
 
+    
     @Override
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
         broadcast(conn + " has left the room!");
         System.out.println(conn + " has left the room!");
+        isClientConnectedNow=false;
     }
 
     long t = 0;
 
     @Override
     public void onMessage(WebSocket conn, String message) {
-//		broadcast( message );
-//                long t2=System.currentTimeMillis()-t;
-//		System.out.println( conn + " : " + message + " zaman:"+t2 +"ms" );
-//                t=System.currentTimeMillis();
-        cb.onReceive("received:"+message);
+        FactoryUtils.icbf.onMessageReceived(message);
         if (message.equals("stop")) {
             FactoryUtils.running.set(false);
+            
         }
     }
 

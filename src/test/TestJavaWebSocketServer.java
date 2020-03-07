@@ -1,8 +1,9 @@
 package test;
 
-
-import jazari.CallBackInterface;
 import utils.FactoryUtils;
+import interfaces.InterfaceCallBack;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -15,25 +16,29 @@ import utils.FactoryUtils;
  */
 public class TestJavaWebSocketServer {
 
-    private static long t1=FactoryUtils.tic();
-    
-    private static void onMessageReceived(String str) {        
-        System.out.println(str);
-        //System.out.println(str+" elapsed time is "+(System.nanoTime()-t1)/(1000000.0d));
-        //t1=System.nanoTime();
-        t1=FactoryUtils.toc(t1);
+    private static long t1 = FactoryUtils.tic();
+
+    private static void messageReceived(String str) {
+        System.out.println("str = " + str);
+        if (str.equals("ping start")) {
+            FactoryUtils.server.broadcast("send me");
+            //FactoryUtils.server.broadcast("stop");
+        } else {
+            System.out.println(str);
+            FactoryUtils.server.broadcast(str+" send backed");
+            t1 = FactoryUtils.toc(t1);
+        }
+
         
     }
 
     public static void main(String[] args) {
-        FactoryUtils.startJavaServer(new CallBackInterface() {
+        FactoryUtils.startJavaServer();
+        FactoryUtils.icbf=new InterfaceCallBack() {
             @Override
-            public void onReceive(String str) {
-                onMessageReceived(str);
+            public void onMessageReceived(String str) {
+                messageReceived(str);
             }
-
-        });
-        FactoryUtils.delay(1000);
-
+        };
     }
 }
