@@ -21,7 +21,7 @@ public class MyFrame extends javax.swing.JFrame {
         new MyThread().start();
     }
     
-    VideoCap videoCap = new VideoCap();
+    VideoCap videoCap = new VideoCap(0,640,480);
     long t=0;
 
     public void paint(Graphics g){

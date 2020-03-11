@@ -28,18 +28,20 @@ public class PanelWebCam extends javax.swing.JPanel {
     private List<BufferedImage> list_image = new ArrayList();
     private String tab_title;
     private String project_name;
+    private double aspectRatio=640.0/480.0;
 
     /**
      * Creates new form PanelWebCam
      *
      * @param ref
      */
-    public PanelWebCam(ForMakers ref, String pr_name, String title) {
+    public PanelWebCam(ForMakers ref, String pr_name, String title,double aspect_ratio) {
         project_name = pr_name;
         tab_title = title;
         frm = ref;
         initComponents();
         panel.setLayout(new WrapLayout());
+        this.aspectRatio=aspect_ratio;
     }
 
     /**
@@ -208,7 +210,7 @@ public class PanelWebCam extends javax.swing.JPanel {
                         pp.setImage(frm.bf, size);
                         panel.add(pp, 0);
                         
-                        double aspect_ratio = 640.0 / 480.0;
+                        double aspect_ratio = aspectRatio;
                         int sz = (int) (224 * aspect_ratio) + 1;
                         BufferedImage img = FactoryUtils.resizeAspectRatio(frm.bf, sz, sz);
                         Rectangle rect = new Rectangle((img.getHeight() - 224) / 2, (img.getWidth() - 224) / 2, 224, 224);

@@ -42,7 +42,7 @@ public class Mat2Image {
             img = new BufferedImage(w, h, type);
     }
 
-    BufferedImage getImage(Mat mat){
+    public BufferedImage getImage(Mat mat){
         getSpace(mat);
         WritableRaster raster = img.getRaster();
         DataBufferByte dataBuffer = (DataBufferByte) raster.getDataBuffer();

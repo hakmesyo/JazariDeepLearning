@@ -8,11 +8,10 @@
  */
 package release_makers;
 
-//import com.github.sarxos.webcam.Webcam;
-//import com.github.sarxos.webcam.WebcamResolution;
 import gnu.io.SerialPort;
 import gnu.io.SerialPortEvent;
 import gnu.io.SerialPortEventListener;
+import gui.CameraSetting;
 import gui.FrameVideoSnap;
 import gui.PanelPicture;
 import gui.PanelWebCam;
@@ -78,7 +77,10 @@ public class ForMakers extends javax.swing.JFrame implements SerialPortEventList
     public List<String> list_class_labels = new ArrayList<>();
     private boolean flag_webcam_stop = false;
     private String comPort = null;
-    private VideoCap videoCap = new VideoCap();
+    private static VideoCap webcam = new VideoCap(0,640,480);
+    static int prev_cam_id=0;
+    static int prev_cam_width=640;
+    static int prev_cam_height=480;
 
     /**
      * Creates new form ForMakers
@@ -184,12 +186,12 @@ public class ForMakers extends javax.swing.JFrame implements SerialPortEventList
         panel_webcam = new PanelPicture();
         jPanel11 = new javax.swing.JPanel();
         jLabel3 = new javax.swing.JLabel();
-        combo_cam = new javax.swing.JComboBox<>();
         chk_flip = new javax.swing.JCheckBox();
         btn_connectCam = new javax.swing.JToggleButton();
         btn_add_new_class = new javax.swing.JButton();
         jLabel4 = new javax.swing.JLabel();
         txt_project_name = new javax.swing.JTextField();
+        btn_camSettings = new javax.swing.JButton();
         tabbed_pane_class_labels = new javax.swing.JTabbedPane();
         jPanel7 = new javax.swing.JPanel();
         jPanel8 = new javax.swing.JPanel();
@@ -592,10 +594,6 @@ public class ForMakers extends javax.swing.JFrame implements SerialPortEventList
         jLabel3.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
         jLabel3.setText("Kamerayı Seç");
 
-        combo_cam.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
-        combo_cam.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-        combo_cam.setPreferredSize(new java.awt.Dimension(190, 40));
-
         chk_flip.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
         chk_flip.setText("flip");
 
@@ -634,6 +632,14 @@ public class ForMakers extends javax.swing.JFrame implements SerialPortEventList
             }
         });
 
+        btn_camSettings.setFont(new java.awt.Font("Tahoma", 1, 13)); // NOI18N
+        btn_camSettings.setText("Settings");
+        btn_camSettings.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_camSettingsActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel11Layout = new javax.swing.GroupLayout(jPanel11);
         jPanel11.setLayout(jPanel11Layout);
         jPanel11Layout.setHorizontalGroup(
@@ -641,7 +647,6 @@ public class ForMakers extends javax.swing.JFrame implements SerialPortEventList
             .addGroup(jPanel11Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(combo_cam, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(btn_connectCam, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel11Layout.createSequentialGroup()
                         .addComponent(jLabel3)
@@ -651,7 +656,8 @@ public class ForMakers extends javax.swing.JFrame implements SerialPortEventList
                     .addGroup(jPanel11Layout.createSequentialGroup()
                         .addComponent(jLabel4)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(txt_project_name)))
+                        .addComponent(txt_project_name))
+                    .addComponent(btn_camSettings, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanel11Layout.setVerticalGroup(
@@ -662,7 +668,7 @@ public class ForMakers extends javax.swing.JFrame implements SerialPortEventList
                     .addComponent(jLabel3)
                     .addComponent(chk_flip))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(combo_cam, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(btn_camSettings)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btn_connectCam)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -671,7 +677,7 @@ public class ForMakers extends javax.swing.JFrame implements SerialPortEventList
                     .addComponent(txt_project_name, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btn_add_new_class)
-                .addContainerGap(86, Short.MAX_VALUE))
+                .addContainerGap(81, Short.MAX_VALUE))
         );
 
         tabbed_pane_class_labels.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
@@ -1040,11 +1046,26 @@ public class ForMakers extends javax.swing.JFrame implements SerialPortEventList
         }
     }//GEN-LAST:event_radio_webcamItemStateChanged
 
+    
+    public static void updateCamera(int id,int width,int height){
+        prev_cam_id=id;
+        prev_cam_width=width;
+        prev_cam_height=height;
+        if (webcam!=null) {
+            webcam.closeCamera();
+        }        
+        webcam=new VideoCap(id, width, height);        
+    }
+    
     private void btn_connectCamActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_connectCamActionPerformed
         if (btn_connectCam.isSelected()) {
+            btn_camSettings.setEnabled(false);
             btn_connectCam.setText("Durdur");
             flag_webcam_stop = false;
-            if (videoCap != null) {
+            if (webcam==null) {
+                updateCamera(prev_cam_id, prev_cam_width, prev_cam_height);
+            }
+            if (webcam != null) {
                 SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
                     public Void doInBackground() {
                         return getLiveVideoStream();
@@ -1052,13 +1073,8 @@ public class ForMakers extends javax.swing.JFrame implements SerialPortEventList
                 };
                 worker.execute();
             }
-
-//            if (webcam == null) {
-//                webcam = Webcam.getWebcams().get(combo_cam.getSelectedIndex());
-//                webcam.setViewSize(WebcamResolution.VGA.getSize());
-//            }
-//            webcam.open();
         } else {
+            btn_camSettings.setEnabled(true);
             btn_connectCam.setText("Başlat");
             flag_webcam_stop = true;
         }
@@ -1069,7 +1085,8 @@ public class ForMakers extends javax.swing.JFrame implements SerialPortEventList
         int n = tabbed_pane_class_labels.getTabCount();
         String str = FactoryUtils.inputBox("Sınıf Etiketi", "class_" + (n + 1));
         if (isClassNameValid(str)) {
-            tabbed_pane_class_labels.addTab(str, new PanelWebCam(this, txt_project_name.getText(), str));
+            double aspr=1.0*prev_cam_width/prev_cam_height;
+            tabbed_pane_class_labels.addTab(str, new PanelWebCam(this, txt_project_name.getText(), str,aspr));
             tabbed_pane_class_labels.setSelectedIndex(n);
         }
 
@@ -1159,11 +1176,14 @@ public class ForMakers extends javax.swing.JFrame implements SerialPortEventList
         new FrameVideoSnap().setVisible(true);
     }//GEN-LAST:event_btn_videoSnapActionPerformed
 
+    private void btn_camSettingsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_camSettingsActionPerformed
+        new CameraSetting(prev_cam_id,prev_cam_width,prev_cam_height).setVisible(true);
+    }//GEN-LAST:event_btn_camSettingsActionPerformed
+
     private Void getLiveVideoStream() {
         bf = null;
         while (true) {
             if (flag_webcam_stop) {
-//                webcam.close();
                 bf = null;
                 getPanel().setImage(null);
                 try {
@@ -1171,10 +1191,11 @@ public class ForMakers extends javax.swing.JFrame implements SerialPortEventList
                 } catch (InterruptedException ex) {
                     Logger.getLogger(ForMakers.class.getName()).log(Level.SEVERE, null, ex);
                 }
+                webcam.closeCamera(); 
+                webcam=null;
                 return null;
             } else {
-//                bf = webcam.getImage();
-                bf = videoCap.getOneFrame();
+                bf = webcam.getOneFrame();
                 if (chk_flip.isSelected()) {
                     bf = FactoryUtils.flipVertical(bf);
                 }
@@ -1230,6 +1251,7 @@ public class ForMakers extends javax.swing.JFrame implements SerialPortEventList
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_add_new_class;
     private javax.swing.JButton btn_browse;
+    private javax.swing.JButton btn_camSettings;
     private javax.swing.JToggleButton btn_connectCam;
     private javax.swing.JButton btn_data_source;
     private javax.swing.JButton btn_execute;
@@ -1237,7 +1259,6 @@ public class ForMakers extends javax.swing.JFrame implements SerialPortEventList
     private javax.swing.JButton btn_output;
     private javax.swing.JButton btn_videoSnap;
     private javax.swing.JCheckBox chk_flip;
-    private javax.swing.JComboBox<String> combo_cam;
     private javax.swing.ButtonGroup group_data_source;
     private javax.swing.ButtonGroup group_model;
     private javax.swing.ButtonGroup group_output_format;

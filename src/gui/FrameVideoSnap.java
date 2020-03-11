@@ -13,7 +13,8 @@ import javax.swing.JProgressBar;
 import javax.swing.JSlider;
 import javax.swing.JTabbedPane;
 import utils.FactoryUtils;
-import utils.VideoSnapProcessing;
+import utils.VideoSnapProcessingApplet;
+import utils.VideoSnapProcessingOpenCV;
 
 /**
  *
@@ -40,7 +41,7 @@ public class FrameVideoSnap extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        panel = new javax.swing.JPanel();
+        panel = new VideoSnapProcessingOpenCV();
         tabbed_pane_class_labels = new javax.swing.JTabbedPane();
         btn_add_new_class = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
@@ -245,10 +246,10 @@ public class FrameVideoSnap extends javax.swing.JFrame {
     private javax.swing.JTabbedPane tabbed_pane_class_labels;
     // End of variables declaration//GEN-END:variables
 
-    VideoSnapProcessing pr_ref;
+    VideoSnapProcessingOpenCV pr_ref;
 
-    public JPanel getPanel() {
-        return panel;
+    public VideoSnapProcessingOpenCV getPanel() {
+        return (VideoSnapProcessingOpenCV)panel;
     }
 
     public JProgressBar getBar() {
@@ -259,9 +260,8 @@ public class FrameVideoSnap extends javax.swing.JFrame {
         this.getPanel().removeAll();
         String path = FactoryUtils.browseVideoFile().getAbsolutePath();
         System.out.println("path = " + path);
-        pr_ref = VideoSnapProcessing.load(this, path);
-//        pr_ref=TestEmbedProcessing.load(this,"dataset/videos/640.mov");
-//        pr_ref=TestEmbedProcessing.load(this,"dataset/videos/vid_1.mp4");
+//        pr_ref = VideoSnapProcessingApplet.load(this, path);
+        getPanel().setPath(this,path);
     }
 
     private boolean isClassNameValid(String str) {

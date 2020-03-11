@@ -1,0 +1,10 @@
+ubuntu da çalışacaksanız properties->Run->VM optionsa bunu yazın
+
+-Djava.library.path="/home/elcezeri/opencv_4.2.0/OpenCV/build/lib"
+
+settingsde olası webcam resolution ayarları
+
+320x240
+640x480
+800x600
+1280x720

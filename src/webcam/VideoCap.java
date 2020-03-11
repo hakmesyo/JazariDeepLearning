@@ -21,17 +21,24 @@ public class VideoCap {
     VideoCapture cap;
     Mat2Image mat2Img = new Mat2Image();
 
-    public VideoCap(){
+    public VideoCap(int id,int width,int height){
         cap = new VideoCapture();
-        cap.open(0);
+        cap.open(id);
 //        cap.set(Videoio.CAP_PROP_FRAME_WIDTH, 1280);
 //        cap.set(Videoio.CAP_PROP_FRAME_HEIGHT, 720);
-        cap.set(Videoio.CAP_PROP_FRAME_WIDTH, 640);
-        cap.set(Videoio.CAP_PROP_FRAME_HEIGHT, 480);
+//        cap.set(Videoio.CAP_PROP_FRAME_WIDTH, 640);
+//        cap.set(Videoio.CAP_PROP_FRAME_HEIGHT, 480);
+        cap.set(Videoio.CAP_PROP_FRAME_WIDTH, width);
+        cap.set(Videoio.CAP_PROP_FRAME_HEIGHT, height);
+        
     }
 
     public BufferedImage getOneFrame() {
         cap.read(mat2Img.mat);
         return mat2Img.getImage(mat2Img.mat);
+    }
+    
+    public void closeCamera(){
+        cap.release();
     }
 }
