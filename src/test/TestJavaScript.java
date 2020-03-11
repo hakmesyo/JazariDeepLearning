@@ -23,6 +23,7 @@ import org.opencv.core.Mat;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
+import org.opencv.videoio.Videoio;
 import utils.FactoryUtils;
 
 /**
@@ -96,6 +97,8 @@ public class TestJavaScript {
 
     private static void openCVCamera() {
         VideoCapture camera = new VideoCapture(0);
+        camera.set(Videoio.CAP_PROP_FRAME_WIDTH, 640);
+        camera.set(Videoio.CAP_PROP_FRAME_HEIGHT, 480);
         if (!camera.isOpened()) {
             System.out.println("Error accessing camera");
         } else {
@@ -115,18 +118,19 @@ public class TestJavaScript {
                         camera.read(webcamImage);
                         t = FactoryUtils.toc("camera read cost:", t);
 
-                        Mat dif=webcamImage.clone();
-                        Mat gaussf_45=webcamImage.clone();
-                        Imgproc.GaussianBlur(gaussf_45, gaussf_45,new Size(45,45), 0);
-                        Mat gaussf_11=webcamImage.clone();
-                        Imgproc.GaussianBlur(gaussf_11, gaussf_11,new Size(11,11), 0);
+//                        Mat dif=webcamImage.clone();
+//                        Mat gaussf_45=webcamImage.clone();
+//                        Imgproc.GaussianBlur(gaussf_45, gaussf_45,new Size(45,45), 0);
+//                        Mat gaussf_11=webcamImage.clone();
+//                        Imgproc.GaussianBlur(gaussf_11, gaussf_11,new Size(11,11), 0);
+//                        
+//                        Imgproc.cvtColor(gaussf_45, gaussf_45, Imgproc.COLOR_BGR2GRAY);
+//                        Imgproc.cvtColor(gaussf_11, gaussf_11, Imgproc.COLOR_BGR2GRAY);
+//                        
+//                        Core.absdiff(gaussf_11, gaussf_45,dif);
                         
-                        Imgproc.cvtColor(gaussf_45, gaussf_45, Imgproc.COLOR_BGR2GRAY);
-                        Imgproc.cvtColor(gaussf_11, gaussf_11, Imgproc.COLOR_BGR2GRAY);
-                        
-                        Core.absdiff(gaussf_11, gaussf_45,dif);
-                        
-                        BufferedImage img = FactoryUtils.toBufferedImage(dif);
+//                        BufferedImage img = FactoryUtils.toBufferedImage(dif);
+                        BufferedImage img = FactoryUtils.toBufferedImage(webcamImage);
                         t = FactoryUtils.toc("convert cost:", t);
                         fp.setImage(img);
                         t = FactoryUtils.toc("panel paint cost:", t);

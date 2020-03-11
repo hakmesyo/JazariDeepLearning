@@ -8,8 +8,8 @@
  */
 package release_makers;
 
-import com.github.sarxos.webcam.Webcam;
-import com.github.sarxos.webcam.WebcamResolution;
+//import com.github.sarxos.webcam.Webcam;
+//import com.github.sarxos.webcam.WebcamResolution;
 import gnu.io.SerialPort;
 import gnu.io.SerialPortEvent;
 import gnu.io.SerialPortEventListener;
@@ -37,14 +37,16 @@ import utils.FactoryUtils;
 import utils.SerialLib;
 import utils.SerialType;
 import utils.SocketServer;
+import webcam.VideoCap;
 
 /**
  *
  * @author BAP1
  */
 public class ForMakers extends javax.swing.JFrame implements SerialPortEventListener {
+
     {
-        System.setProperty("jna.library.path","processing_3.5.3\\video\\windows64");
+        System.setProperty("jna.library.path", "processing_3.5.3\\video\\windows64");
     }
     private int[] a = {1, 2, 3};
 
@@ -71,11 +73,12 @@ public class ForMakers extends javax.swing.JFrame implements SerialPortEventList
     private boolean flag_btn_execute = false;
     private int second_layer_width = 270;
     private DefaultListModel list_model = new DefaultListModel();
-    private Webcam webcam = null;
+//    private Webcam webcam = null;
     public BufferedImage bf = null;
     public List<String> list_class_labels = new ArrayList<>();
     private boolean flag_webcam_stop = false;
     private String comPort = null;
+    private VideoCap videoCap = new VideoCap();
 
     /**
      * Creates new form ForMakers
@@ -97,13 +100,13 @@ public class ForMakers extends javax.swing.JFrame implements SerialPortEventList
         tabbed_pane_view.setEnabledAt(1, false);
         tabbed_pane_view.setSelectedIndex(2);
         this.setExtendedState(JFrame.MAXIMIZED_BOTH);
-        List<Webcam> lst = Webcam.getWebcams();
-        if (lst.size() > 0) {
-            ComboBoxModel model = new DefaultComboBoxModel(lst.toArray());
-            combo_cam.setModel(model);
-        } else {
-            JOptionPane.showMessageDialog(this, "No connected cameras found");
-        }
+//        List<Webcam> lst = Webcam.getWebcams();
+//        if (lst.size() > 0) {
+//            ComboBoxModel model = new DefaultComboBoxModel(lst.toArray());
+//            combo_cam.setModel(model);
+//        } else {
+//            JOptionPane.showMessageDialog(this, "No connected cameras found");
+//        }
         getPanel().setPanelSize(getPanel().getWidth(), getPanel().getHeight());
         getPanel().setSquareCropSize(224);
         tabbedpane_dataset_source.setEnabledAt(1, false);
@@ -1041,18 +1044,20 @@ public class ForMakers extends javax.swing.JFrame implements SerialPortEventList
         if (btn_connectCam.isSelected()) {
             btn_connectCam.setText("Durdur");
             flag_webcam_stop = false;
-            if (webcam == null) {
-                webcam = Webcam.getWebcams().get(combo_cam.getSelectedIndex());
-                webcam.setViewSize(WebcamResolution.VGA.getSize());
+            if (videoCap != null) {
+                SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+                    public Void doInBackground() {
+                        return getLiveVideoStream();
+                    }
+                };
+                worker.execute();
             }
-            webcam.open();
-            SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
-                public Void doInBackground() {
-                    return getLiveVideoStream();
-                }
-            };
-            worker.execute();
 
+//            if (webcam == null) {
+//                webcam = Webcam.getWebcams().get(combo_cam.getSelectedIndex());
+//                webcam.setViewSize(WebcamResolution.VGA.getSize());
+//            }
+//            webcam.open();
         } else {
             btn_connectCam.setText("Başlat");
             flag_webcam_stop = true;
@@ -1158,7 +1163,7 @@ public class ForMakers extends javax.swing.JFrame implements SerialPortEventList
         bf = null;
         while (true) {
             if (flag_webcam_stop) {
-                webcam.close();
+//                webcam.close();
                 bf = null;
                 getPanel().setImage(null);
                 try {
@@ -1168,7 +1173,8 @@ public class ForMakers extends javax.swing.JFrame implements SerialPortEventList
                 }
                 return null;
             } else {
-                bf = webcam.getImage();
+//                bf = webcam.getImage();
+                bf = videoCap.getOneFrame();
                 if (chk_flip.isSelected()) {
                     bf = FactoryUtils.flipVertical(bf);
                 }
