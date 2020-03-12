@@ -1,5 +1,7 @@
 ilkönce opencv yi ubuntuya yüklemeniz gerekiyor
-bunun için https://github.com/milq/milq/blob/master/scripts/bash/install-opencv.sh adresinden güncel script dosyasını alın. Ben bir kopyasını bu txt nin yanına koydum dilerseniz bunu home dizinine kopyalayıp Ctrl-Alt-T ile cmd penceresinden sudo ./opencv.sh deyip çalıştırıyorsunuz. Opencv linux ta indirilip derlenmesi gerekiyor. Bu şekilde daha iyi optimize oluyor.
+bunun için https://github.com/milq/milq/blob/master/scripts/bash/install-opencv.sh adresinden güncel script dosyasını alın. 
+Ben bir kopyasını bu txt nin yanına koydum dilerseniz bunu home dizinine kopyalayıp Ctrl-Alt-T ile cmd penceresinden
+ sudo ./opencv.sh deyip çalıştırıyorsunuz. Opencv linux ta indirilip derlenmesi gerekiyor. Bu şekilde daha iyi optimize oluyor.
 
 ubuntu da çalışacaksanız properties->Run->VM optionsa bunu yazın
 

@@ -47,8 +47,8 @@ public class TestJavaScript {
     private static long t = FactoryUtils.tic();
 
     public static void main(String[] args) {
-        openCVCamera();
-//        executeWebCamTest();
+//        openCVCamera();
+        executeWebCamTest();
 //        executeOfflineTest();
     }
 
